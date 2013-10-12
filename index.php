@@ -4,23 +4,39 @@ include 'includes/settings.php';
 include 'includes/database.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 
-if(isset($_GET['action'])) {
+/**
+ * Handle API actions
+ *
+ * add a beverage: ?action=add&beverage=beer&amount=0.5&token=asdf_1234
+ */
+if(isset($_GET['action']) && isset($_GET['token'])) {
   $action = $_GET['action'];
-  switch($action) {
-    case 'add': {
-      // If a beverage is set and the token matches, write to db.
-      if(isset($_GET['beverage']) && isset($_GET['token']) && $_GET['token'] == $api_token){
-        $db->write($_GET['beverage']);
-        header("HTTP/1.1 200 OK");
-        exit;
-      }
-      else{
-        header("HTTP/1.1 400 Bad Request");
-        exit;
-      }
-    } break;
+  $token = $_GET['token'];
+  if($db->isValidToken($token)){
+    $user = $db->getUserId($token);
+    switch($action){
+      case 'add':{
+        if(isset($_GET['beverage']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
+          $db->addBeverage($_GET['beverage'], $_GET['amount'], $user);
+          header('HTTP/1.1 200 OK');
+          echo '200';
+          exit;
+        }
+        else{
+          header('HTTP/1.1 400 Bad Request');
+          echo '400';
+          exit;
+        }
+      } break;
+    }
+  }
+  else{
+    header('HTTP/1.1 401 Unauthorized');
+    echo '401';
+    exit;
   }
 }
+// Display the page.
 else{
   // Add beverages to get the stats for here.
   $beverages = array('beer');
@@ -29,6 +45,7 @@ else{
   foreach ($beverages as $beverage) {
     $overall_stats[$beverage] = array(
       'count' => $db->getCount($beverage),
+      'amount' => $db->getAmount($beverage),
       );
   }
 ?>
@@ -38,6 +55,7 @@ else{
   </head>
   <body>
     <div class='count'>Beer count: <?php echo $overall_stats['beer']['count']; ?></div>
+    <div class='count'>Beer amount: <?php echo $overall_stats['beer']['amount']; ?></div>
   </body>
 </html>
 <?php
