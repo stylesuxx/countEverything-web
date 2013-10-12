@@ -12,11 +12,18 @@ class Database{
     }
   }
 
-	// Writes a record to the database
-	function write($name){
-    $stmt = $this->_dbh->prepare('INSERT INTO beverage SET name = :name');
-		$stmt->execute(array(':name' => $name));
+	// Add a beverage to the database
+	function addBeverage($name, $amount, $id){
+    $stmt = $this->_dbh->prepare('INSERT INTO beverage SET name = :name, amount = :amount, user_id = :id');
+    $stmt->execute(array(':name' => $name, ':amount' => $amount, ':id' => $id));
 	}
+
+  // Get a user ID by token
+  function getUserId($token) {
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    return $stmt->fetchColumn();
+  }
 
 	// Get beverage count by name
 	function getCount($name){
@@ -24,6 +31,13 @@ class Database{
     $stmt->execute(array(':name' => $name)); 
     return $stmt->fetchColumn();
 	}
+
+  // Get beverage amount by name
+  function getAmount($name){
+    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM beverage WHERE name = :name');
+    $stmt->execute(array(':name' => $name)); 
+    return $stmt->fetchColumn();
+  }
 
 	// Get beverage count by name and timerange
   // TODO
@@ -33,35 +47,45 @@ class Database{
 	}
 
   // Check if a given api token can be found in the user table
-  function validToken($token) {
+  function isValidToken($token) {
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    if($stmt->rowCount() > 0){
+      return True;
+    }
     return False;
   }
 
   // Add a new user to the database
   function addUser($token, $name) {
-    return False;
+    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
+    $stmt->execute(array(':name' => $name, ':token' => $token));
   }
 
   // Create the tables in the datbase if they do not exist yet.
   function create() {
-    // Create beverage table
-    $sql = 'CREATE TABLE IF NOT EXISTS beverage (
-      id int(11) NOT NULL AUTO_INCREMENT,
-      name varchar(40) NOT NULL,
-      amount decimal(11) NOT NULL,
-      added timestamp,
-      UNIQUE KEY id (id)
-    )
-    CHARACTER SET utf8 COLLATE utf8_general_ci';
-    $this->_dbh->exec($sql);
-
-    // Generate user table
+    // Create user table
     $sql = 'CREATE TABLE IF NOT EXISTS user (
       id int(11) NOT NULL AUTO_INCREMENT,
       token varchar(40) NOT NULL,
       name varchar(40) NOT NULL,
       added timestamp,
       UNIQUE KEY token (token),
+      UNIQUE KEY id (id),
+      PRIMARY KEY id (id)
+    )
+    CHARACTER SET utf8 COLLATE utf8_general_ci';
+    $this->_dbh->exec($sql);
+
+    // Create beverage table
+    $sql = 'CREATE TABLE IF NOT EXISTS beverage (
+      id int(11) NOT NULL AUTO_INCREMENT,
+      user_id int(11) NOT NULL,
+      name varchar(40) NOT NULL,
+      amount decimal(10, 5) NOT NULL,
+      added timestamp,
+      UNIQUE KEY id (id),
+      FOREIGN KEY (user_id) REFERENCES user(id),
       PRIMARY KEY id (id)
     )
     CHARACTER SET utf8 COLLATE utf8_general_ci';
