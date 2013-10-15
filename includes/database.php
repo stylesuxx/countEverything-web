@@ -12,31 +12,55 @@ class Database{
     }
   }
 
-	// Add a beverage to the database
-	function addBeverage($name, $amount, $id){
-    $stmt = $this->_dbh->prepare('INSERT INTO beverage SET name = :name, amount = :amount, user_id = :id');
-    $stmt->execute(array(':name' => $name, ':amount' => $amount, ':id' => $id));
+	// Add item to the database
+	function addItem($name, $amount, $id){
+    $stmt = $this->_dbh->prepare('INSERT INTO item SET name = :name, amount = :amount, user_id = :id');
+    $stmt->execute(array(':name' => strtolower($name), ':amount' => $amount, ':id' => $id));
 	}
 
-  // Get a user ID by token
-  function getUserId($token) {
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
+	// Get item count by name
+	function getCount($name){
+    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item WHERE name = :name');
+    $stmt->execute(array(':name' => strtolower($name))); 
+    return $stmt->fetchColumn();
+	}
+
+  // Get names, count and amount of each distinct item
+  function getAllStats() {
+    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
+    $stmt->execute();
+    $results = $stmt->fetchAll();
+
+    return $results;
+  }
+
+  // Get item amount by name
+  function getAmount($name){
+    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM item WHERE name = :name');
+    $stmt->execute(array(':name' => strtolower($name))); 
     return $stmt->fetchColumn();
   }
 
-	// Get beverage count by name
-	function getCount($name){
-    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM beverage WHERE name = :name');
-    $stmt->execute(array(':name' => $name)); 
-    return $stmt->fetchColumn();
-	}
+  // Returns an array of all distinct item names 
+  function getItemNames() {
+    $items = array();
+    $stmt = $this->_dbh->prepare('SELECT name FROM item GROUP BY name');
+    $stmt->execute();
+    $results = $stmt->fetchAll();
 
-  // Get beverage amount by name
-  function getAmount($name){
-    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM beverage WHERE name = :name');
-    $stmt->execute(array(':name' => $name)); 
-    return $stmt->fetchColumn();
+    foreach ($results as $row) {
+      array_push($items, $row['name']);
+    }
+
+    return $items;
+  }
+
+  // TODO
+  // Retruns an array of all distinct items of a user
+  function getUserItemNames($token) {
+    $items = array();
+
+    return $items;
   }
 
 	// Get beverage count by name and timerange
@@ -46,6 +70,26 @@ class Database{
 		return 'get count range';
 	}
 
+  // Add a new user to the database
+  function addUser($token, $name) {
+    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
+    $stmt->execute(array(':name' => $name, ':token' => $token));
+  }
+
+  // Get a user ID by token
+  function getUserId($token) {
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    return $stmt->fetchColumn();
+  }
+
+  // Get a user name by token
+  function getUserName($token) {
+    $stmt = $this->_dbh->prepare('SELECT name FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    return $stmt->fetchColumn();
+  }
+
   // Check if a given api token can be found in the user table
   function isValidToken($token) {
     $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
@@ -54,12 +98,6 @@ class Database{
       return True;
     }
     return False;
-  }
-
-  // Add a new user to the database
-  function addUser($token, $name) {
-    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
-    $stmt->execute(array(':name' => $name, ':token' => $token));
   }
 
   // Create the tables in the datbase if they do not exist yet.
@@ -78,7 +116,7 @@ class Database{
     $this->_dbh->exec($sql);
 
     // Create beverage table
-    $sql = 'CREATE TABLE IF NOT EXISTS beverage (
+    $sql = 'CREATE TABLE IF NOT EXISTS item (
       id int(11) NOT NULL AUTO_INCREMENT,
       user_id int(11) NOT NULL,
       name varchar(40) NOT NULL,
