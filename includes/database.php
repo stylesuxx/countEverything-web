@@ -25,6 +25,13 @@ class Database{
     return $stmt->fetchColumn();
 	}
 
+  // Get item amount by name
+  function getAmount($name){
+    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM item WHERE name = :name');
+    $stmt->execute(array(':name' => strtolower($name))); 
+    return $stmt->fetchColumn();
+  }
+
   // Get names, count and amount of each distinct item
   function getAllStats() {
     $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
@@ -34,33 +41,27 @@ class Database{
     return $results;
   }
 
-  // Get item amount by name
-  function getAmount($name){
-    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM item WHERE name = :name');
-    $stmt->execute(array(':name' => strtolower($name))); 
-    return $stmt->fetchColumn();
-  }
-
   // Returns an array of all distinct item names 
   function getItemNames() {
-    $items = array();
     $stmt = $this->_dbh->prepare('SELECT name FROM item GROUP BY name');
     $stmt->execute();
     $results = $stmt->fetchAll();
 
-    foreach ($results as $row) {
-      array_push($items, $row['name']);
-    }
-
-    return $items;
+    return $results;
   }
 
-  // TODO
-  // Retruns an array of all distinct items of a user
-  function getUserItemNames($token) {
-    $items = array();
+  // Retruns all distinct item names by a user
+  function getUserItemNames($id) {
+    $stmt = $this->_dbh->prepare('SELECT name FROM item WHERE user_id = :id GROUP BY name');
+    $stmt->execute(array(':id' => strtolower($id))); 
+    return $stmt->fetchAll();
+  }
 
-    return $items;
+  // Retruns all distinct item names by a user
+  function getUserItemSummary($id) {
+    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item WHERE user_id = :id GROUP BY name');
+    $stmt->execute(array(':id' => strtolower($id))); 
+    return $stmt->fetchAll();
   }
 
 	// Get beverage count by name and timerange
