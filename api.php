@@ -25,7 +25,7 @@ if(isset($_GET['action']) && isset($_GET['token'])){
     switch($action){
       case 'add':{
         if(isset($_GET['beverage']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
-          $db->addBeverage($_GET['beverage'], $_GET['amount'], $user);
+          $db->addItem($_GET['beverage'], $_GET['amount'], $user);
           header('HTTP/1.1 200 OK');
           echo json_encode(array(
           	'http' => 200,
@@ -35,10 +35,6 @@ if(isset($_GET['action']) && isset($_GET['token'])){
         }
         else{
           header('HTTP/1.1 400 Bad Request');
-          echo json_encode(array(
-          	'http' => 400,
-          	'message' => 'Bad request',
-          	));
           exit;
         }
       } break;
@@ -54,10 +50,6 @@ if(isset($_GET['action']) && isset($_GET['token'])){
   }
   else{
     header('HTTP/1.1 401 Unauthorized');
-    echo json_encode(array(
-    	'http' => 401,
-        'message' => 'API token not valid',
-        ));
     exit;
   }
 }
