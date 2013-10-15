@@ -3,23 +3,24 @@ include 'includes/settings.php';
 include 'includes/database.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 
-// Add beverages to get the stats for here.
-$beverages = array('beer');
-
-$overall_stats = array('');
-foreach ($beverages as $beverage) {
-  $overall_stats[$beverage] = array(
-    'count' => $db->getCount($beverage),
-    'amount' => $db->getAmount($beverage),
-    );
+$rows = '';
+$items = $db->getAllStats();
+foreach ($items as $item) {
+  $rows .= '<tr><td>' . $item['name'] . '</td><td>' . $item['count'] . '</td><td>' . $item['amount'] . '</td></tr>';
 }
 ?>
+
+<!DOCTYPE html>
 <html>
   <head>
-    <title>1337.af Beer counter</title>
+    <title>Counter</title>
   </head>
   <body>
-    <div class='count'>Beer count: <?php echo $overall_stats['beer']['count']; ?></div>
-    <div class='count'>Beer amount: <?php echo $overall_stats['beer']['amount']; ?></div>
+    <table>
+      <thead><th>Name</th><th>Count</th><th>Amount</th></thead>
+      <tbody>
+        <?php echo $rows; ?>
+      </tbody>
+    </table>
   </body>
 </html>
