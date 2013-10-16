@@ -91,7 +91,7 @@ class Database{
     return $stmt->fetchColumn();
   }
 
-  // Check if a given api token can be found in the user table
+  // Check if a given api token is found in the user table
   function isValidToken($token) {
     $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
     $stmt->execute(array(':token' => $token));

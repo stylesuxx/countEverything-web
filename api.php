@@ -3,10 +3,6 @@ include 'includes/settings.php';
 include 'includes/database.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 
-function returnData() {
-
-}
-
 /**
  * Handle API requests and return JSON and set according http status code.
  * 
@@ -15,7 +11,7 @@ function returnData() {
  * 200 when successfull request
  *
  * test a connection: ?action=test&token=asdf_1234
- * add a beverage: ?action=add&token=asdf_1234&beverage=beer&amount=0.5
+ * add a item: ?action=add&token=asdf_1234&item=beer&amount=0.5
  */
 if(isset($_GET['action']) && isset($_GET['token'])){
   $action = $_GET['action'];
@@ -24,12 +20,12 @@ if(isset($_GET['action']) && isset($_GET['token'])){
     $user = $db->getUserId($token);
     switch($action){
       case 'add':{
-        if(isset($_GET['beverage']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
-          $db->addItem($_GET['beverage'], $_GET['amount'], $user);
+        if(isset($_GET['item']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
+          $db->addItem($_GET['item'], $_GET['amount'], $user);
           header('HTTP/1.1 200 OK');
           echo json_encode(array(
           	'http' => 200,
-          	'message' => 'Added beverage',
+          	'message' => 'Counted '. $_GET['amount']. ' ' . $_GET['item'],
           	));
           exit;
         }
@@ -42,7 +38,7 @@ if(isset($_GET['action']) && isset($_GET['token'])){
         header('HTTP/1.1 200 OK');
 	    echo json_encode(array(
 	    	'http' => 200,
-	        'message' => 'Everything set up',
+	        'message' => 'Ready to go.',
 	        ));
 	    exit;
       } break;
