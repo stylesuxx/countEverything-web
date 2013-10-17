@@ -41,20 +41,14 @@ class API {
    *
    * @param $items An array of items to look up
    * @param $id The id to look the items up for
+   * @return A HTML representation of the requested items
    */
-  public function renderItems($items, $id) {
-    $this->render($this->getJson($items, $id), 'tables');
-  }
-
-  /**
-   * Render a html page.
-   *
-   * @param $json The content to render
-   */
-  function render($json, $template) {
-  	header('HTTP/1.1 200 OK');
-    $content = $json;
-    include 'templates/' . $template . '.tpl';
+  public function getHtml($items, $id) {
+    $content = $this->getJson($items, $id);
+    ob_start();
+    include('templates/tables.tpl');
+    $output = ob_get_clean();
+    return $output;
   }
 }
 ?>
