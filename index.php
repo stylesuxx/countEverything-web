@@ -1,13 +1,23 @@
 <?php
 include 'includes/settings.php';
 include 'includes/database.php';
+include 'includes/api.php';
+
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 
-$rows = '';
-$items = $db->getAllItemStats();
-foreach ($items as $item) {
-  $rows .= '<tr><th>' . $item['name'] . '</th><td>' . $item['amount'] . '</td></tr>';
+$items = $db->getAllItems(7);
+$json = array();
+foreach ($items as $key => $value) {
+  $line = array('name' => $key, 'data' => array());
+  $rows = $items[$key];
+  foreach ($rows as $row) {
+    $timestamp = strtotime($row['date']);
+    $line['data'][] = array($timestamp*1000, (float)$row['amount']);
+  }
+  $json[] = $line;
 }
+
+$json = json_encode($json);
 ?>
 
 <!DOCTYPE html>
@@ -18,15 +28,45 @@ foreach ($items as $item) {
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/modules/data.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
-    <script src="js/script.js"></script>
   </head>
   <body>
     <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-    <table id="data">
-      <thead><th></th><th>Amount</th></thead>
-      <tbody>
-        <?php echo $rows; ?>
-      </tbody>
-    </table>
+    <script>
+    $(function () {
+        $('#container').highcharts({
+            chart: {
+                type: 'spline'
+            },
+            title: {
+                text: ''
+            },
+            subtitle: {
+                text: ''
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    month: '%e. %b',
+                    year: '%b'
+                },
+                tickInterval: 24 * 3600 * 1000
+            },
+            yAxis: {
+                title: {
+                    text: 'Amount'
+                },
+                min: 0
+            },
+            tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y;
+                }
+            },
+            
+            series: <?php echo $json; ?>
+        });
+    });
+    </script>
   </body>
 </html>
