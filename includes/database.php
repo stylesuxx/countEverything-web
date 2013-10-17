@@ -169,6 +169,7 @@ class Database{
    * 
    * @param $item The item to look up
    * @param $id The user id to look the items up
+   * @return All matched rows
    */
   public function getItems($item, $id) {
     $stmt = $this->_dbh->prepare(
@@ -179,6 +180,36 @@ class Database{
        ORDER BY date');
     $stmt->execute(array(':item' => strtolower($item), ':id' => $id));
     return $stmt->fetchAll();
+  }
+  
+  /**
+   * Get all entries of a specific item
+   * 
+   * @param $item The item to look up
+   * @return All matched rows
+   */
+  public function getItemsFromAll($item) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) AS amount, DATE(added) AS date  
+       FROM item 
+       WHERE name = :item
+       GROUP BY DATE(added)
+       ORDER BY date');
+    $stmt->execute(array(':item' => strtolower($item)));
+    return $stmt->fetchAll();
+  }
+
+  /**
+   * Get all stats from the database
+   */
+  public function getAllItems() {
+    $items = array();
+    $names = $this->getAllItemNames();
+    foreach ($names as $key => $value) {
+      $items[$value['name']] = $this->getItemsFromAll($value['name']);
+    }
+    
+    return $items;
   }
 
   /**
