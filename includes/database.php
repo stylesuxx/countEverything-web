@@ -25,17 +25,17 @@ class Database{
     }
   }
 
-	/**
-   * Writes an item to the database.
+  /**
+   * Inserts an item to the database.
    *
    * @param $name The items name
    * @param $amount The amount
    * @param $user_id The id of the submitting user
    */
-	public function addItem($name, $amount, $user_id){
+  public function addItem($name, $amount, $user_id){
     $stmt = $this->_dbh->prepare('INSERT INTO item SET name = :name, amount = :amount, user_id = :id');
     $stmt->execute(array(':name' => strtolower($name), ':amount' => $amount, ':id' => $user_id));
-	}
+  }
 
   /**
    * Add a new user to the database.
@@ -188,7 +188,7 @@ class Database{
     CHARACTER SET utf8 COLLATE utf8_general_ci';
     $this->_dbh->exec($sql);
 
-    // Create beverage table
+    // Create item table
     $sql = 'CREATE TABLE IF NOT EXISTS item (
       id int(11) NOT NULL AUTO_INCREMENT,
       user_id int(11) NOT NULL,
