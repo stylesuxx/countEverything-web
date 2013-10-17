@@ -1,7 +1,9 @@
 <?php
 include 'includes/settings.php';
 include 'includes/database.php';
+include 'includes/api.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
+$api = new API($db);
 
 /**
  * Handle API requests and return JSON and set according http status code.
@@ -28,24 +30,26 @@ if(isset($_GET['action']) && isset($_GET['token'])){
   $action = $_GET['action'];
   $token = $_GET['token'];
   if($db->isValidToken($token)){
-    $user = $db->getUserId($token);
+    $user_id = $db->getUserId($token);
     switch($action){
       // ACTION: Get statistics
       case 'get': {
-        // Render html with table in case no format is given
         $format = "html";
         if(isset($_GET['format'])){
           $format = $_GET['format'];
         }
         switch($format) {
-          // RETURN: Json data
           case 'json': {
-
+            $json = $api->getJson(array($_GET['item'], 'beer', 'foo'), $user_id);
+            header('HTTP/1.1 200 OK');
+            echo $json;
+            exit;
           } break;
-
-          // RETURN: Rendered HTML tables
           default: {
-
+            $html = $api->getHtml(array($_GET['item'], 'beer', 'foo'), $user_id);
+            header('HTTP/1.1 200 OK');
+            echo $html;
+            exit;
           } break;
         }
       } break;
@@ -53,7 +57,7 @@ if(isset($_GET['action']) && isset($_GET['token'])){
       // ACTION: Add an item to the database
       case 'add': {
         if(isset($_GET['item']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
-          $db->addItem($_GET['item'], $_GET['amount'], $user);
+          $db->addItem($_GET['item'], $_GET['amount'], $user_id);
           header('HTTP/1.1 200 OK');
           echo json_encode(array(
             'http' => 200,
