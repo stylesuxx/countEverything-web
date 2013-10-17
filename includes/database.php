@@ -145,7 +145,11 @@ class Database{
    * @return Item names
    */
   public function getAllItemNames() {
-    $stmt = $this->_dbh->prepare('SELECT name FROM item GROUP BY name');
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) as amount 
+       FROM item 
+       GROUP BY name 
+       ORDER BY amount DESC');
     $stmt->execute();
     $results = $stmt->fetchAll();
 
@@ -202,10 +206,11 @@ class Database{
   /**
    * Get all stats from the database
    */
-  public function getAllItems() {
+  public function getAllItems($limit) {
     $items = array();
     $names = $this->getAllItemNames();
     foreach ($names as $key => $value) {
+      if($limit-- == 0) break;
       $items[$value['name']] = $this->getItemsFromAll($value['name']);
     }
     
