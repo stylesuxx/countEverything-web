@@ -164,10 +164,20 @@ class Database{
     return $stmt->fetchAll();
   }
 
-  // Retruns all distinct item names by a user
-  public function getUserItemSummary($id) {
-    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item WHERE user_id = :id GROUP BY name');
-    $stmt->execute(array(':id' => strtolower($id)));
+  /**
+   * Get all entries of a specific item by a specific user
+   * 
+   * @param $item The item to look up
+   * @param $id The user id to look the items up
+   */
+  public function getItems($item, $id) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT sum(amount) AS amount, DATE(added) AS date  
+       FROM item 
+       WHERE user_id = :id AND name = :item
+       GROUP BY DATE(added)
+       ORDER BY date');
+    $stmt->execute(array(':item' => strtolower($item), ':id' => $id));
     return $stmt->fetchAll();
   }
 
