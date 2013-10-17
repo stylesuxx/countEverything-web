@@ -29,6 +29,8 @@ $api = new API($db);
 if(isset($_GET['action']) && isset($_GET['token'])){
   $action = $_GET['action'];
   $token = $_GET['token'];
+
+  // The token has to be valid before any action may be performed
   if($db->isValidToken($token)){
     $user_id = $db->getUserId($token);
     switch($action){
@@ -39,17 +41,16 @@ if(isset($_GET['action']) && isset($_GET['token'])){
           $format = $_GET['format'];
         }
         switch($format) {
+          // FORMAT: JSON
           case 'json': {
             $json = $api->getJson(array($_GET['item'], 'beer', 'foo'), $user_id);
-            header('HTTP/1.1 200 OK');
-            echo $json;
-            exit;
+            renderOK($json);
           } break;
+          
+          // FORMAT: HTML
           default: {
             $html = $api->getHtml(array($_GET['item'], 'beer', 'foo'), $user_id);
-            header('HTTP/1.1 200 OK');
-            echo $html;
-            exit;
+            renderOK($html);
           } break;
         }
       } break;
@@ -58,35 +59,51 @@ if(isset($_GET['action']) && isset($_GET['token'])){
       case 'add': {
         if(isset($_GET['item']) && isset($_GET['amount']) && is_numeric($_GET['amount'])){
           $db->addItem($_GET['item'], $_GET['amount'], $user_id);
-          header('HTTP/1.1 200 OK');
-          echo json_encode(array(
+          $json = json_encode(array(
             'http' => 200,
             'message' => 'Counted '. $_GET['amount']. ' ' . $_GET['item'],
           ));
-          exit;
+          renderOK($json);
         }
         else{
-          header('HTTP/1.1 400 Bad Request');
-          exit;
+          renderError(header('HTTP/1.1 400 Bad Request'));
         }
       } break;
 
       // ACTION: Test the settings
       case 'test': {
-        header('HTTP/1.1 200 OK');
-        echo json_encode(array(
-          'http' => 200,
-          'message' => 'Ready to go.',
-        ));
-        exit;
+        renderOK(json_encode(array('message' => 'Ready to go.')));
+      } break;
+
+      // ACTION: Default - Bad Request
+      default: {
+          renderError(header('HTTP/1.1 400 Bad Request'));
       } break;
     }
   }
 
   // Token is not valid
   else{
-    header('HTTP/1.1 401 Unauthorized');
-    exit;
+    renderError('HTTP/1.1 401 Unauthorized');
   }
+}
+
+/**
+ * Render content.
+ *
+ * @param $content The content to render
+ */
+function renderOK($content) {
+  header('HTTP/1.1 200 OK');
+  echo $content;
+  exit;
+}
+
+/**
+ * Send an error response.
+ */
+function renderError($header) {
+  header($header);
+  exit;
 }
 ?>
