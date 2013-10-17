@@ -56,9 +56,9 @@ if(isset($_GET['action']) && isset($_GET['token'])){
           $db->addItem($_GET['item'], $_GET['amount'], $user);
           header('HTTP/1.1 200 OK');
           echo json_encode(array(
-          	'http' => 200,
-          	'message' => 'Counted '. $_GET['amount']. ' ' . $_GET['item'],
-          	));
+            'http' => 200,
+            'message' => 'Counted '. $_GET['amount']. ' ' . $_GET['item'],
+          ));
           exit;
         }
         else{
@@ -78,6 +78,8 @@ if(isset($_GET['action']) && isset($_GET['token'])){
       } break;
     }
   }
+
+  // Token is not valid
   else{
     header('HTTP/1.1 401 Unauthorized');
     exit;
