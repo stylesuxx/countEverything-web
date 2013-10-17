@@ -1,8 +1,21 @@
 <?php
+/**
+ * This is the database adapter.
+ * It tries to connect to the database. If the tables are not present in the
+ * database and the database does exist, the tables are created automatically.
+ */
 class Database{
   private $_dbh;
 
-  function __construct($host, $db, $user, $pass){ 
+  /**
+   * Database constructor. Tries to connect to the database or dies trying hard.
+   *
+   * @param $host The database host
+   * @param $db The database name
+   * @param $user The database user
+   * @param $pass The database pass
+   */
+  function __construct($host, $db, $user, $pass){
     try {
       $this->_dbh = new PDO('mysql:host=' . $host . ';dbname=' . $db, $user, $pass);
       $this->create();
@@ -12,28 +25,113 @@ class Database{
     }
   }
 
-	// Add item to the database
-	function addItem($name, $amount, $id){
+	/**
+   * Writes an item to the database.
+   *
+   * @param $name The items name
+   * @param $amount The amount
+   * @param $user_id The id of the submitting user
+   */
+	public function addItem($name, $amount, $user_id){
     $stmt = $this->_dbh->prepare('INSERT INTO item SET name = :name, amount = :amount, user_id = :id');
-    $stmt->execute(array(':name' => strtolower($name), ':amount' => $amount, ':id' => $id));
+    $stmt->execute(array(':name' => strtolower($name), ':amount' => $amount, ':id' => $user_id));
 	}
 
-	// Get item count by name
-	function getCount($name){
-    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item WHERE name = :name');
-    $stmt->execute(array(':name' => strtolower($name))); 
+  /**
+   * Add a new user to the database.
+   * The token has to be unique amongst all users.
+   *
+   * @param $token The new users token
+   * @param $name The new users name
+   */
+  public function addUser($token, $name) {
+    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
+    $stmt->execute(array(':name' => $name, ':token' => $token));
+  }
+
+  /**
+   * Get a user id by token.
+   * Token must be valid.
+   *
+   * @param $token The token to get the id for
+   * @return A users id
+   */
+  public function getUserId($token) {
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
     return $stmt->fetchColumn();
-	}
+  }
 
-  // Get item amount by name
-  function getAmount($name){
+  /**
+   * Get a user name by token.
+   * Token must be valid.
+   *
+   * @param $token The token to get the name for
+   * @return A users name
+   */
+  public function getUserName($token) {
+    $stmt = $this->_dbh->prepare('SELECT name FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    return $stmt->fetchColumn();
+  }
+
+  // Get beverage count by name and timerange
+  // TODO
+  public function getCountRange($name, $from, $to){
+    $sql = '';
+    return 'get count range';
+  }
+
+  /**
+   * Checks if a given token is valid, aka if it exists in the database.
+   * An empty token is never valid.
+   *
+   * @param $token The token to check the validity
+   * @return True or False
+   */
+  public function isValidToken($token) {
+    if(empty($token)) return False;
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    if($stmt->rowCount() > 0) return True;
+    return False;
+  }
+
+  /**
+   * Get the amount of distinct users that have countet at least one item.
+   *
+   * @return Amount of distinct users
+   */
+  public function getDistinctUsers(){
+    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id');
+    $stmt->execute();
+    return $stmt->fetchColumn();
+  }
+
+  /**
+   * Get the amount of distinct users that have countet a specific item.
+   *
+   * @return Amount of distinct users
+   */
+  public function getDistinctUsersForItem($name){
+    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id WHERE item = :name');
+    $stmt->execute(array(':name' => strtolower($name)));
+    return $stmt->fetchColumn();
+  }
+
+  /**
+   * Get the total amount of a specific item.
+   *
+   * @return Amount of items
+   */
+  public function getTotalAmount($name){
     $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM item WHERE name = :name');
-    $stmt->execute(array(':name' => strtolower($name))); 
+    $stmt->execute(array(':name' => strtolower($name)));
     return $stmt->fetchColumn();
   }
 
   // Get names, count and amount of each distinct item
-  function getAllStats() {
+  public function getAllItemStats() {
     $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
     $stmt->execute();
     $results = $stmt->fetchAll();
@@ -41,8 +139,12 @@ class Database{
     return $results;
   }
 
-  // Returns an array of all distinct item names 
-  function getItemNames() {
+  /**
+   * Get all distinct item names available in the database.
+   *
+   * @return Item names
+   */
+  public function getAllItemNames() {
     $stmt = $this->_dbh->prepare('SELECT name FROM item GROUP BY name');
     $stmt->execute();
     $results = $stmt->fetchAll();
@@ -50,59 +152,29 @@ class Database{
     return $results;
   }
 
-  // Retruns all distinct item names by a user
-  function getUserItemNames($id) {
+  /**
+   * Return all distinct item names of a specific user.
+   *
+   * @param $id The users id
+   * @return Item names
+   */
+  public function getItemNamesByUser($id) {
     $stmt = $this->_dbh->prepare('SELECT name FROM item WHERE user_id = :id GROUP BY name');
-    $stmt->execute(array(':id' => strtolower($id))); 
+    $stmt->execute(array(':id' => strtolower($id)));
     return $stmt->fetchAll();
   }
 
   // Retruns all distinct item names by a user
-  function getUserItemSummary($id) {
+  public function getUserItemSummary($id) {
     $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item WHERE user_id = :id GROUP BY name');
-    $stmt->execute(array(':id' => strtolower($id))); 
+    $stmt->execute(array(':id' => strtolower($id)));
     return $stmt->fetchAll();
   }
 
-	// Get beverage count by name and timerange
-  // TODO
-	function getCountRange($name, $from, $to){
-    $sql = '';
-		return 'get count range';
-	}
-
-  // Add a new user to the database
-  function addUser($token, $name) {
-    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
-    $stmt->execute(array(':name' => $name, ':token' => $token));
-  }
-
-  // Get a user ID by token
-  function getUserId($token) {
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    return $stmt->fetchColumn();
-  }
-
-  // Get a user name by token
-  function getUserName($token) {
-    $stmt = $this->_dbh->prepare('SELECT name FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    return $stmt->fetchColumn();
-  }
-
-  // Check if a given api token is found in the user table
-  function isValidToken($token) {
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    if($stmt->rowCount() > 0){
-      return True;
-    }
-    return False;
-  }
-
-  // Create the tables in the datbase if they do not exist yet.
-  function create() {
+  /**
+   * Creates all the needed database tables if they have not been created yet.
+   */
+  private function create() {
     // Create user table
     $sql = 'CREATE TABLE IF NOT EXISTS user (
       id int(11) NOT NULL AUTO_INCREMENT,
@@ -129,6 +201,6 @@ class Database{
     )
     CHARACTER SET utf8 COLLATE utf8_general_ci';
     $this->_dbh->exec($sql);
-  } 
+  }
 }
 ?>

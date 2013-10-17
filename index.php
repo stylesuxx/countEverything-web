@@ -4,7 +4,7 @@ include 'includes/database.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 
 $rows = '';
-$items = $db->getAllStats();
+$items = $db->getAllItemStats();
 foreach ($items as $item) {
   $rows .= '<tr><th>' . $item['name'] . '</th><td>' . $item['amount'] . '</td></tr>';
 }
