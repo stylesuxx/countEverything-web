@@ -26,7 +26,44 @@ $api = new API($db);
  * html - time range    ?action=get&token=asdf_1234&item=beer&from=timestamp&to=timestamp
  * json - time range    ?action=get&token=asdf_1234&item=beer&format=json&from=timestamp&to=timestamp
  */
-if(isset($_GET['action']) && isset($_GET['token'])){
+
+/**
+ * The API expects a JSON with at least a valid token and an action.
+ * Also the API expects preferences if the action requires them.
+ *
+ * Test request:
+ * ?json=[{"token":"asdfgh","action":"test"}]
+ *
+ * Add an item:
+ * ?json=[{"token":"asdfgh","action":"test"}] 
+ */
+if(isset($_GET['json'])){
+  print "json<br />";
+  $request = json_decode($_GET['json'])[0];
+
+  // Each requests needs a token
+  if(property_exists($request, 'token')){
+    $token = $request->token;
+
+    // the token has to be valid
+    if($db->isValidToken($token)) {
+      $user_id = $db->getUserId($token);
+
+      // Each request also needs an action
+      if(property_exists($request, 'action')){
+        processAction($request);
+      }
+      else{
+        renderError(header('HTTP/1.1 400 Bad Request'));
+      }
+    }
+    else{
+      renderError('HTTP/1.1 401 Unauthorized');
+    }
+  }
+}
+
+else if(isset($_GET['action']) && isset($_GET['token'])){
   $action = $_GET['action'];
   $token = $_GET['token'];
 
@@ -99,9 +136,39 @@ if(isset($_GET['action']) && isset($_GET['token'])){
 }
 
 /**
+ * Proccess a requested action
+ */
+function processAction($request) {
+  $action = $request->action;
+  switch($action){
+    
+    // For testing the settings. If we make it till hear, a correct
+    // token and the test action were provided.
+    case 'test': {
+      renderOK("");
+    } break;
+
+    // Add an item to the database
+    case 'add': {
+
+    } break;
+
+    // Execute a query on the database
+      case 'query': {
+
+    }
+          
+    // Action not implemented
+    default: {
+      renderError(header('HTTP/1.1 405 Method Not Allowed'));    
+    }
+  }
+}
+
+/**
  * Render content.
  *
- * @param $content The content to render
+ * @param $content The html content to render
  */
 function renderOK($content) {
   header('HTTP/1.1 200 OK');
