@@ -29,16 +29,27 @@ $api = new API($db);
 
 /**
  * The API expects a JSON with at least a valid token and an action.
- * Also the API expects preferences if the action requires them.
+ * Depending on the action other paramaters have to be provided as well.
  *
- * Test request:
+ * Error Codes:
+ * 400: No action specified or missing parameters
+ * 401: No token or invalid token provided
+ * 405: Requested action is not implemented
+ *
+ * Test client setup:
  * ?json=[{"token":"asdfgh","action":"test"}]
  *
- * Add an item:
- * ?json=[{"token":"asdfgh","action":"test"}] 
+ * Add an item with a specific amount:
+ * ?json=[{"token":"asdfgh","action":"add","item":"foo","amount":1.2}]
+ *
+ * Request statisitics for all items:
+ * ?json=[{"token":"asdfgh","action":"query"}]
+ *
+ * Request statisitics for multiple items:
+ * ?json=[{"token":"asdfgh","action":"query","items":["item_1","item_2","item_3"]}]
+ *
  */
 if(isset($_GET['json'])){
-  print "json<br />";
   $request = json_decode($_GET['json'])[0];
 
   // Each requests needs a token
@@ -51,15 +62,24 @@ if(isset($_GET['json'])){
 
       // Each request also needs an action
       if(property_exists($request, 'action')){
-        processAction($request);
+        processAction($request, $user_id);
       }
+
+      // No action provided
       else{
         renderError(header('HTTP/1.1 400 Bad Request'));
       }
     }
+
+    // Token invalid
     else{
       renderError('HTTP/1.1 401 Unauthorized');
     }
+  }
+
+  // No token provided
+  else{
+    renderError('HTTP/1.1 401 Unauthorized');
   }
 }
 
@@ -138,7 +158,9 @@ else if(isset($_GET['action']) && isset($_GET['token'])){
 /**
  * Proccess a requested action
  */
-function processAction($request) {
+function processAction($request, $user_id) {
+  GLOBAL $db, $api;
+
   $action = $request->action;
   switch($action){
     
@@ -148,19 +170,57 @@ function processAction($request) {
       renderOK("");
     } break;
 
-    // Add an item to the database
+    // Add an item to the database when item is set and amount is numeric.
+    // Otherwise return bad request error.
     case 'add': {
-
+      if(property_exists($request, 'item') && property_exists($request, 'amount') && is_numeric($request->amount)){
+        $db->addItem($request->item, $request->amount, $user_id);
+        $json = json_encode(array('message' => 'Counted '. $request->amount . ' ' . $request->item));
+        renderOK($json);
+      }
+      else{
+        renderError('HTTP/1.1 400 Bad Request');
+      }
     } break;
 
-    // Execute a query on the database
-      case 'query': {
+    // Query the database for statistics
+    case 'query': {
+      $items = array();
+      
+      // If items where provided query for them
+      if(property_exists($request, 'items') && is_array($request->items)){
+        $items = $request->items;
+      }
 
+      // If no items were provided get statistics for all items
+      else{
+        $names = $db->getItemNamesByUser($user_id);
+        foreach ($names as $key => $value) {
+          array_push($items, $value['name']);
+        }
+      }
+
+      // Return request depending on format
+      $format = (property_exists($request, 'format'))? $request->format : 'html';
+      switch($format) {
+        // FORMAT: JSON
+        case 'json': {
+          $json = $api->getJson($items, $user_id);
+          renderOK($json);
+        } break;
+          
+        // FORMAT: HTML
+        default: {
+          $html = $api->getHtml($items, $user_id);
+          renderOK($html);
+        } break;
+      }
+      // TODO: Check for time range, if no time range provided check all time
     }
           
     // Action not implemented
     default: {
-      renderError(header('HTTP/1.1 405 Method Not Allowed'));    
+      renderError('HTTP/1.1 405 Method Not Allowed');    
     }
   }
 }
