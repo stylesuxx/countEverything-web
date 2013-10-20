@@ -163,7 +163,12 @@ class Database{
    * @return Item names
    */
   public function getItemNamesByUser($id) {
-    $stmt = $this->_dbh->prepare('SELECT name FROM item WHERE user_id = :id GROUP BY name');
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) as amount
+       FROM item 
+       WHERE user_id = :id 
+       GROUP BY name
+       ORDER BY amount DESC');
     $stmt->execute(array(':id' => strtolower($id)));
     return $stmt->fetchAll();
   }
