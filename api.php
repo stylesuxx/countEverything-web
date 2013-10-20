@@ -19,7 +19,7 @@ $api = new API($db);
  * If requesting a time range, the to parameter may be omitted to get all items
  * from from timestamp till current date.
  *
- * Multiple items may be requested at once if they are provided as a list.
+ * Multiple items may be requested at once if they are delimited with a comma(,).
  *
  * html - all time      ?action=get&token=asdf_1234&item=beer
  * json - all time      ?action=get&token=asdf_1234&item=beer&format=json
@@ -40,16 +40,26 @@ if(isset($_GET['action']) && isset($_GET['token'])){
         if(isset($_GET['format'])){
           $format = $_GET['format'];
         }
+        if(isset($_GET['item'])){
+          $items = explode(',', $_GET['item']);
+        }
+        else {
+          $items = array();
+          $names = $db->getItemNamesByUser($user_id);
+          foreach ($names as $key => $value) {
+            array_push($items, $value['name']);
+          }
+        }
         switch($format) {
           // FORMAT: JSON
           case 'json': {
-            $json = $api->getJson(array($_GET['item'], 'beer', 'foo'), $user_id);
+            $json = $api->getJson($items, $user_id);
             renderOK($json);
           } break;
           
           // FORMAT: HTML
           default: {
-            $html = $api->getHtml(array($_GET['item'], 'beer', 'foo'), $user_id);
+            $html = $api->getHtml($items, $user_id);
             renderOK($html);
           } break;
         }
