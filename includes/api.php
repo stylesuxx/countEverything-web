@@ -50,5 +50,19 @@ class API {
     $output = ob_get_clean();
     return $output;
   }
+
+  /**
+   * Checks if a given token is valid, aka if it exists in the database.
+   * An empty token is never valid.
+   *
+   * @param $token The token to check the validity
+   * @return True or False
+   */
+  public function isValidToken($token) {
+    if(empty($token)) return False;
+    $user = $this->_db->getUser($token);
+    if(count($user) > 0) return True;
+    return False;
+  }
 }
 ?>

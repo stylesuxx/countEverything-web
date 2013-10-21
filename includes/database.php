@@ -89,7 +89,7 @@ class Database{
       ':token' => $token
     ));
 
-    return $stmt->fetchColumn();
+    return $stmt->fetchAll();
   }
 
   /**
@@ -164,15 +164,24 @@ class Database{
   }
 
   /**
-   * Get the total amount of a specific item.
+   * Get the total amount of a specific item submitted by all users.
    *
    * @return Amount of items
    */
   public function getTotalAmount($name){
-    $stmt = $this->_dbh->prepare('SELECT SUM(amount) FROM item WHERE name = :name');
-    $stmt->execute(array(':name' => strtolower($name)));
+    $stmt = $this->_dbh->prepare(
+      'SELECT SUM(amount) 
+       FROM item
+       WHERE name = :name'
+    );
+    $stmt->execute(array(
+      ':name' => strtolower($name)
+    ));
+    
     return $stmt->fetchColumn();
   }
+
+  // TODO: refactor the code below and check if there is no better place for it.
 
   // Get names, count and amount of each distinct item
   public function getAllItemStats() {
@@ -249,6 +258,7 @@ class Database{
    * TODO: Move this to the API, this can be checked via the getUser method.
    * If it has no element the token is not valid.
    */
+  /*
   public function isValidToken($token) {
     if(empty($token)) return False;
     $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
@@ -256,6 +266,7 @@ class Database{
     if($stmt->rowCount() > 0) return True;
     return False;
   }
+  */
 
   /**
    * Creates all the needed database tables if they have not been created yet.
