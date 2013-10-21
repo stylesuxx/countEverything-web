@@ -35,9 +35,7 @@ if(isset($_GET['json'])){
     $token = $request->token;
 
     // the token has to be valid
-    if($api->isValidToken($token)) {
-      $user_id = $db->getUser($token)[0]['id'];
-      var_dump($user_id);
+    if($user_id = $api->isValidToken($token)) {
 
       // Each request also needs an action
       if(property_exists($request, 'action')){

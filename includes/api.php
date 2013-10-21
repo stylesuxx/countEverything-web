@@ -56,12 +56,12 @@ class API {
    * An empty token is never valid.
    *
    * @param $token The token to check the validity
-   * @return True or False
+   * @return The user id if it is a valid token or False otherwise
    */
   public function isValidToken($token) {
     if(empty($token)) return False;
     $user = $this->_db->getUser($token);
-    if(count($user) > 0) return True;
+    if(count($user) > 0) return $user[0]['id'];
     return False;
   }
 }
