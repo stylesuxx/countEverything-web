@@ -4,8 +4,9 @@ include 'includes/database.php';
 include 'includes/api.php';
 
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
+$api = new API($db);
 
-$items = $db->getAllItems(7);
+$items = $api->getAllItems(10);
 $json = array();
 foreach ($items as $key => $value) {
   $line = array('name' => $key, 'data' => array());

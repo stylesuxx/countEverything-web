@@ -223,42 +223,10 @@ class Database{
     $stmt->execute(array(
       ':item' => strtolower($item)
     ));
-    
+
     return $stmt->fetchAll();
   }
-
-  // TODO: refactor the code below and check if there is no better place for it.
-
-  // Get names, count and amount of each distinct item
-  public function getAllItemStats() {
-    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
-    $stmt->execute();
-    $results = $stmt->fetchAll();
-
-    return $results;
-  }
-
-  /**
-   * Get all stats from the database
-   */
-  public function getAllItems($limit) {
-    $items = array();
-    $names = $this->getAllItemNames();
-    foreach ($names as $key => $value) {
-      if($limit-- == 0) break;
-      $items[$value['name']] = $this->getItemsFromAll($value['name']);
-    }
-    
-    return $items;
-  }
-
-  // Get beverage count by name and timerange
-  // TODO
-  public function getCountRange($name, $from, $to){
-    $sql = '';
-    return 'get count range';
-  }
-
+  
   /**
    * Creates all the needed database tables if they have not been created yet.
    */

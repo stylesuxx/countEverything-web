@@ -64,5 +64,22 @@ class API {
     if(count($user) > 0) return $user[0]['id'];
     return False;
   }
+
+  /**
+   * Get all items with all stats from all users from the database.
+   *
+   * @param $limit The maximum amount of items to return
+   * @return Return all entries
+   */
+  public function getAllItems($limit) {
+    $items = array();
+    $names = $this->_db->getAllItemNames();
+    foreach ($names as $key => $value) {
+      if($limit-- == 0) break;
+      $items[$value['name']] = $this->_db->getItemsFromAll($value['name']);
+    }
+    
+    return $items;
+  }
 }
 ?>
