@@ -95,7 +95,7 @@ class Database{
   /**
    * Get the amount of distinct users that have at least submitted one item.
    *
-   * @return Amount of distinct users contributed to the statistics
+   * @return Amount of distinct users
    */
   public function getDistinctUsers(){
     $stmt = $this->_dbh->prepare(
@@ -108,13 +108,20 @@ class Database{
   }
 
   /**
-   * Get the amount of distinct users that have countet a specific item.
+   * Get the amount of distinct users that have submitted a specific item.
    *
    * @return Amount of distinct users
    */
   public function getDistinctUsersForItem($item){
-    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id WHERE item = :item');
-    $stmt->execute(array(':item' => strtolower($item)));
+    $stmt = $this->_dbh->prepare(
+      'SELECT COUNT(*) 
+       FROM item GRPUP BY user_id
+       WHERE item = :item'
+    );
+    $stmt->execute(array(
+      ':item' => strtolower($item)
+    ));
+
     return $stmt->fetchColumn();
   }
 
