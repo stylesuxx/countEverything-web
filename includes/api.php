@@ -25,7 +25,7 @@ class API {
     $json = array();
     foreach ($items as $item) {
       $line = array('name' => $item, 'data' => array());
-      $rows = $this->_db->getItems($item, $id);
+      $rows = $this->_db->getItemFromUser($item, $id);
       foreach ($rows as $row) {
         $timestamp = strtotime($row['date']);
         $line['data'][] = array($timestamp*1000, (float)$row['amount']);

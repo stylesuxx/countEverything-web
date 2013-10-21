@@ -181,6 +181,30 @@ class Database{
     return $stmt->fetchColumn();
   }
 
+  /**
+   * Get all entries of a specific item by a specific user.
+   * 
+   * @param $item The item to look up
+   * @param $id The user id to look the items up
+   * @return All matched rows
+   */
+  public function getItemFromUser($item, $id) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT sum(amount) AS amount, DATE(added) AS date  
+       FROM item 
+       WHERE user_id = :id AND name = :item
+       GROUP BY DATE(added)
+       ORDER BY date'
+    );
+    
+    $stmt->execute(array(
+      ':item' => strtolower($item),
+      ':id' => $id
+    ));
+    
+    return $stmt->fetchAll();
+  }
+
   // TODO: refactor the code below and check if there is no better place for it.
 
   // Get names, count and amount of each distinct item
@@ -190,24 +214,6 @@ class Database{
     $results = $stmt->fetchAll();
 
     return $results;
-  }
-
-  /**
-   * Get all entries of a specific item by a specific user
-   * 
-   * @param $item The item to look up
-   * @param $id The user id to look the items up
-   * @return All matched rows
-   */
-  public function getItems($item, $id) {
-    $stmt = $this->_dbh->prepare(
-      'SELECT sum(amount) AS amount, DATE(added) AS date  
-       FROM item 
-       WHERE user_id = :id AND name = :item
-       GROUP BY DATE(added)
-       ORDER BY date');
-    $stmt->execute(array(':item' => strtolower($item), ':id' => $id));
-    return $stmt->fetchAll();
   }
   
   /**
@@ -247,26 +253,6 @@ class Database{
     $sql = '';
     return 'get count range';
   }
-
-  /**
-   * Checks if a given token is valid, aka if it exists in the database.
-   * An empty token is never valid.
-   *
-   * @param $token The token to check the validity
-   * @return True or False
-   *
-   * TODO: Move this to the API, this can be checked via the getUser method.
-   * If it has no element the token is not valid.
-   */
-  /*
-  public function isValidToken($token) {
-    if(empty($token)) return False;
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    if($stmt->rowCount() > 0) return True;
-    return False;
-  }
-  */
 
   /**
    * Creates all the needed database tables if they have not been created yet.
