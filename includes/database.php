@@ -126,6 +126,23 @@ class Database{
   }
 
   /**
+   * Get all distinct item names available in the database.
+   *
+   * @return Item names
+   */
+  public function getAllItemNames() {
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) as amount 
+       FROM item 
+       GROUP BY name 
+       ORDER BY amount DESC'
+    );
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+  }
+
+  /**
    * Get the total amount of a specific item.
    *
    * @return Amount of items
@@ -139,23 +156,6 @@ class Database{
   // Get names, count and amount of each distinct item
   public function getAllItemStats() {
     $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
-    $stmt->execute();
-    $results = $stmt->fetchAll();
-
-    return $results;
-  }
-
-  /**
-   * Get all distinct item names available in the database.
-   *
-   * @return Item names
-   */
-  public function getAllItemNames() {
-    $stmt = $this->_dbh->prepare(
-      'SELECT name, sum(amount) as amount 
-       FROM item 
-       GROUP BY name 
-       ORDER BY amount DESC');
     $stmt->execute();
     $results = $stmt->fetchAll();
 
