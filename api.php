@@ -156,7 +156,10 @@ else if(isset($_GET['action']) && isset($_GET['token'])){
 }
 
 /**
- * Proccess a requested action
+ * Proccess a requested action.
+ *
+ * @param request The reques JSON
+ * @param The requesting users id
  */
 function processAction($request, $user_id) {
   GLOBAL $db, $api;
@@ -167,7 +170,7 @@ function processAction($request, $user_id) {
     // For testing the settings. If we make it till hear, a correct
     // token and the test action were provided.
     case 'test': {
-      renderOK("");
+      renderOK(json_encode(array('message' => 'OK')));
     } break;
 
     // Add an item to the database when item is set and amount is numeric.
