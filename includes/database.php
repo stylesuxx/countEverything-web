@@ -143,6 +143,27 @@ class Database{
   }
 
   /**
+   * Return all distinct item names submitted by a specific user.
+   *
+   * @param $id The users id
+   * @return Item names
+   */
+  public function getItemNamesByUser($id) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) as amount
+       FROM item 
+       WHERE user_id = :id 
+       GROUP BY name
+       ORDER BY amount DESC'
+    );
+    $stmt->execute(array(
+      ':id' => strtolower($id)
+    ));
+    
+    return $stmt->fetchAll();
+  }
+
+  /**
    * Get the total amount of a specific item.
    *
    * @return Amount of items
@@ -160,23 +181,6 @@ class Database{
     $results = $stmt->fetchAll();
 
     return $results;
-  }
-
-  /**
-   * Return all distinct item names of a specific user.
-   *
-   * @param $id The users id
-   * @return Item names
-   */
-  public function getItemNamesByUser($id) {
-    $stmt = $this->_dbh->prepare(
-      'SELECT name, sum(amount) as amount
-       FROM item 
-       WHERE user_id = :id 
-       GROUP BY name
-       ORDER BY amount DESC');
-    $stmt->execute(array(':id' => strtolower($id)));
-    return $stmt->fetchAll();
   }
 
   /**
