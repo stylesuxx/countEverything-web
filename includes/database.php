@@ -2,7 +2,10 @@
 /**
  * This is the database adapter.
  * It tries to connect to the database. If the tables are not present in the
- * database and the database does exist, the tables are created automatically.
+ * database but the database does exist, the tables are created automatically.
+ *
+ * All getter methods return raw rows from the database.
+ * The sql statements are prepared statements to prevent 1st and 2nd order SQL injection.
  */
 class Database{
   private $_dbh;
@@ -26,15 +29,22 @@ class Database{
   }
 
   /**
-   * Inserts an item to the database.
+   * Inserts an item, amount and submitting users ID to the database.
    *
    * @param $name The items name
-   * @param $amount The amount
+   * @param $amount The items amount
    * @param $user_id The id of the submitting user
    */
   public function addItem($name, $amount, $user_id){
-    $stmt = $this->_dbh->prepare('INSERT INTO item SET name = :name, amount = :amount, user_id = :id');
-    $stmt->execute(array(':name' => strtolower($name), ':amount' => $amount, ':id' => $user_id));
+    $stmt = $this->_dbh->prepare(
+      'INSERT INTO item
+       SET name = :name, amount = :amount, user_id = :id'
+    );
+    $stmt->execute(array(
+      ':name' => strtolower($name),
+      ':amount' => $amount,
+      ':id' => $user_id)
+    );
   }
 
   /**
