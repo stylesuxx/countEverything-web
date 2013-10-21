@@ -92,19 +92,6 @@ class Database{
     return $stmt->fetchColumn();
   }
 
-  /**
-   * Get a user name by token.
-   * Token must be valid.
-   *
-   * @param $token The token to get the name for
-   * @return A users name
-   */
-  public function getUserName($token) {
-    $stmt = $this->_dbh->prepare('SELECT name FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    return $stmt->fetchColumn();
-  }
-
   // Get beverage count by name and timerange
   // TODO
   public function getCountRange($name, $from, $to){
