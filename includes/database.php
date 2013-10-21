@@ -92,36 +92,18 @@ class Database{
     return $stmt->fetchColumn();
   }
 
-  // Get beverage count by name and timerange
-  // TODO
-  public function getCountRange($name, $from, $to){
-    $sql = '';
-    return 'get count range';
-  }
-
   /**
-   * Checks if a given token is valid, aka if it exists in the database.
-   * An empty token is never valid.
+   * Get the amount of distinct users that have at least submitted one item.
    *
-   * @param $token The token to check the validity
-   * @return True or False
-   */
-  public function isValidToken($token) {
-    if(empty($token)) return False;
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
-    if($stmt->rowCount() > 0) return True;
-    return False;
-  }
-
-  /**
-   * Get the amount of distinct users that have countet at least one item.
-   *
-   * @return Amount of distinct users
+   * @return Amount of distinct users contributed to the statistics
    */
   public function getDistinctUsers(){
-    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id');
+    $stmt = $this->_dbh->prepare(
+      'SELECT COUNT(*) 
+       FROM item GRPUP BY user_id'
+    );
     $stmt->execute();
+    
     return $stmt->fetchColumn();
   }
 
@@ -130,9 +112,9 @@ class Database{
    *
    * @return Amount of distinct users
    */
-  public function getDistinctUsersForItem($name){
-    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id WHERE item = :name');
-    $stmt->execute(array(':name' => strtolower($name)));
+  public function getDistinctUsersForItem($item){
+    $stmt = $this->_dbh->prepare('SELECT COUNT(*) FROM item GRPUP BY user_id WHERE item = :item');
+    $stmt->execute(array(':item' => strtolower($item)));
     return $stmt->fetchColumn();
   }
 
@@ -237,6 +219,31 @@ class Database{
     }
     
     return $items;
+  }
+
+  // Get beverage count by name and timerange
+  // TODO
+  public function getCountRange($name, $from, $to){
+    $sql = '';
+    return 'get count range';
+  }
+
+  /**
+   * Checks if a given token is valid, aka if it exists in the database.
+   * An empty token is never valid.
+   *
+   * @param $token The token to check the validity
+   * @return True or False
+   *
+   * TODO: Move this to the API, this can be checked via the getUser method.
+   * If it has no element the token is not valid.
+   */
+  public function isValidToken($token) {
+    if(empty($token)) return False;
+    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
+    $stmt->execute(array(':token' => $token));
+    if($stmt->rowCount() > 0) return True;
+    return False;
   }
 
   /**
