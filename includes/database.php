@@ -75,15 +75,20 @@ class Database{
   }
 
   /**
-   * Get a user id by token.
-   * Token must be valid.
+   * Get user information by token.
    *
    * @param $token The token to get the id for
-   * @return A users id
+   * @return The information about a user.
    */
-  public function getUserId($token) {
-    $stmt = $this->_dbh->prepare('SELECT id FROM user WHERE token = :token');
-    $stmt->execute(array(':token' => $token));
+  public function getUser($token) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT * FROM user
+       WHERE token = :token'
+    );
+    $stmt->execute(array(
+      ':token' => $token
+    ));
+
     return $stmt->fetchColumn();
   }
 
