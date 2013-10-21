@@ -204,20 +204,10 @@ class Database{
     
     return $stmt->fetchAll();
   }
-
-  // TODO: refactor the code below and check if there is no better place for it.
-
-  // Get names, count and amount of each distinct item
-  public function getAllItemStats() {
-    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
-    $stmt->execute();
-    $results = $stmt->fetchAll();
-
-    return $results;
-  }
   
   /**
-   * Get all entries of a specific item
+   * Get all entries of a specific item submitted by all users with its total
+   * amount.
    * 
    * @param $item The item to look up
    * @return All matched rows
@@ -228,9 +218,24 @@ class Database{
        FROM item 
        WHERE name = :item
        GROUP BY DATE(added)
-       ORDER BY date');
-    $stmt->execute(array(':item' => strtolower($item)));
+       ORDER BY date'
+    );
+    $stmt->execute(array(
+      ':item' => strtolower($item)
+    ));
+    
     return $stmt->fetchAll();
+  }
+
+  // TODO: refactor the code below and check if there is no better place for it.
+
+  // Get names, count and amount of each distinct item
+  public function getAllItemStats() {
+    $stmt = $this->_dbh->prepare('SELECT name, SUM(amount) AS amount, COUNT(id) AS count FROM item GROUP BY name');
+    $stmt->execute();
+    $results = $stmt->fetchAll();
+
+    return $results;
   }
 
   /**
