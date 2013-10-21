@@ -5,7 +5,10 @@
  * database but the database does exist, the tables are created automatically.
  *
  * All getter methods return raw rows from the database.
- * The sql statements are prepared statements to prevent 1st and 2nd order SQL injection.
+ * All add methods return the id of the last inserted row or 0 if no row
+ * was inserted.
+ * The sql statements are prepared statements to prevent 1st and 2nd order SQL
+ * injection.
  */
 class Database{
   private $_dbh;
@@ -20,7 +23,7 @@ class Database{
    */
   function __construct($host, $db, $user, $pass){
     try {
-      $this->_dbh = new PDO('mysql:host=' . $host . ';dbname=' . $db, $user, $pass);
+      $this->_dbh = new PDO('mysql:host='.$host.';dbname='.$db, $user, $pass);
       $this->create();
     } catch (PDOException $e) {
        print "Error!: " . $e->getMessage() . "<br/>";
@@ -34,6 +37,7 @@ class Database{
    * @param $name The items name
    * @param $amount The items amount
    * @param $user_id The id of the submitting user
+   * @return The id of the added item
    */
   public function addItem($name, $amount, $user_id){
     $stmt = $this->_dbh->prepare(
@@ -43,8 +47,10 @@ class Database{
     $stmt->execute(array(
       ':name' => strtolower($name),
       ':amount' => $amount,
-      ':id' => $user_id)
-    );
+      ':id' => $user_id
+    ));
+
+    return $this->_dbh->lastInsertId();
   }
 
   /**
@@ -53,10 +59,19 @@ class Database{
    *
    * @param $token The new users token
    * @param $name The new users name
+   * @return The id of the added user
    */
   public function addUser($token, $name) {
-    $stmt = $this->_dbh->prepare('INSERT INTO user SET name = :name, token = :token');
-    $stmt->execute(array(':name' => $name, ':token' => $token));
+    $stmt = $this->_dbh->prepare(
+      'INSERT INTO user 
+       SET name = :name, token = :token'
+    );
+    $stmt->execute(array(
+      ':name' => $name,
+      ':token' => $token
+    ));
+
+    return $this->_dbh->lastInsertId();
   }
 
   /**
