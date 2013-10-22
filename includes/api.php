@@ -4,6 +4,7 @@
  */
 class API {
   private $_db;
+  private $_format;
 
   /**
    * API Constructor.
@@ -81,6 +82,48 @@ class API {
     
     return $items;
   }
+
+  /**
+   * Get all items from all users and all time.
+   *
+   * @return JSON representation of all ever counted items
+   */
+  public function getAll() {
+    $items = $this->_db->getAll();
+
+    $rows = array();
+    foreach($items as $item){
+      $name = $item['name'];
+      $amount = (float)$item['amount'];
+      $timestamp = strtotime($item['date']) * 1000;
+
+      if(!array_key_exists($name , $rows)){
+        $rows[$name] = array('name' => $name, 'data' => array());
+      }
+
+      $rows[$name]['data'][] = array($timestamp, $amount);
+    }
+
+    $json = array();
+    foreach ($rows as $key => $value) {
+      $json[] = $value;
+    }
+
+    return json_encode($json);
+  }
+
+  /**
+   * Get all items of a specific user.
+   *
+   * @param $user_id The users id to look the items up for
+   * @return All matching entries
+   */
+  public function getItemsByUser($user_id) {
+    // TODO
+
+    return null;
+  }
+
   
   /**
    * Get all items with all stats from all users for a specific time range.
@@ -89,7 +132,7 @@ class API {
    * @param $end The end datetime
    * @return Return all matching entries
    */
-  public function getAllItemsRange($start, $end) {
+  public function getItemsRange($start, $end) {
     // TODO
     
     return null;
@@ -103,7 +146,7 @@ class API {
    * @param $end The end datetime
    * @return Return all matching entries
    */
-  public function getUserItemsRange($user_id, $start, $end) {
+  public function getItemsByUserRange($user_id, $start, $end) {
     // TODO
     
     return null;
