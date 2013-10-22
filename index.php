@@ -6,19 +6,7 @@ include 'includes/api.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 $api = new API($db);
 
-$items = $api->getAllItems(10);
-$json = array();
-foreach ($items as $key => $value) {
-  $line = array('name' => $key, 'data' => array());
-  $rows = $items[$key];
-  foreach ($rows as $row) {
-    $timestamp = strtotime($row['date']);
-    $line['data'][] = array($timestamp*1000, (float)$row['amount']);
-  }
-  $json[] = $line;
-}
-
-$json = json_encode($json);
+$json = $api->getAll();
 ?>
 
 <!DOCTYPE html>
