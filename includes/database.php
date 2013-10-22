@@ -191,10 +191,10 @@ class Database {
    */
   public function getAllByUser($user_id) {
     $stmt = $this->_dbh->prepare(
-      'SELECT sum(amount) AS amount, DATE(added) AS date  
+      'SELECT name, sum(amount) AS amount, DATE(added) AS date  
        FROM item 
        WHERE user_id = :user_id
-       GROUP BY DATE(added)
+       GROUP BY name, DATE(added)
        ORDER BY date'
     );
     
