@@ -11,7 +11,7 @@
  * The sql statements are prepared statements to prevent 1st and 2nd order SQL
  * injection.
  */
-class Database{
+class Database {
   private $_dbh;
 
   /**
