@@ -6,7 +6,7 @@ include 'includes/api.php';
 $db = new Database($db_host, $db_name, $db_user, $db_pass);
 $api = new API($db);
 
-$json = $api->getAll();
+$json = $api->getAllStats();
 ?>
 
 <!DOCTYPE html>

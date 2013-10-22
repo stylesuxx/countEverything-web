@@ -94,6 +94,7 @@ function processAction($request, $user_id) {
     // Query the database for statistics
     case 'query': {
       $items = array();
+      $all = false;
       
       // If items where provided query for them
       if(property_exists($request, 'items') && is_array($request->items)){
@@ -102,25 +103,28 @@ function processAction($request, $user_id) {
 
       // If no items were provided get statistics for all items
       else{
-        $names = $db->getItemNamesByUser($user_id);
-        foreach ($names as $key => $value) {
-          array_push($items, $value['name']);
-        }
+        $all = true;
       }
 
       // Return request depending on format
-      $format = (property_exists($request, 'format'))? $request->format : 'html';
+      $format = (property_exists($request, 'format'))? $request->format : 'json';
       switch($format) {
-        // FORMAT: JSON
-        case 'json': {
-          $json = $api->getJson($items, $user_id);
-          renderOK($json);
+        // FORMAT: HTML
+        case 'html': {
+          $content = $api->getAllStatsByUser($user_id);
+          ob_start();
+          include('includes/templates/tables.tpl');
+          $html = ob_get_clean();
+
+          renderOK($html);
         } break;
           
-        // FORMAT: HTML
+        // FORMAT: JSON
+        case 'json':
         default: {
-          $html = $api->getHtml($items, $user_id);
-          renderOK($html);
+          if($all) $json = $api->getAllStatsByUser($user_id);
+          else $json = "nope";
+          renderOK($json);
         } break;
       }
       // TODO: Check for time range, if no time range provided check all time
