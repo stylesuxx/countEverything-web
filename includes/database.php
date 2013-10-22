@@ -6,7 +6,8 @@
  *
  * All getter methods return raw rows from the database.
  * All add methods return the id of the last inserted row or 0 if no row
- * was inserted.
+ * could be inserted.
+ *
  * The sql statements are prepared statements to prevent 1st and 2nd order SQL
  * injection.
  */
@@ -112,7 +113,7 @@ class Database{
    *
    * @return Amount of distinct users
    */
-  public function getDistinctUsersForItem($item){
+  public function getDistinctUsersByItem($item){
     $stmt = $this->_dbh->prepare(
       'SELECT COUNT(*) 
        FROM item GRPUP BY user_id
@@ -130,7 +131,7 @@ class Database{
    *
    * @return Item names
    */
-  public function getAllItemNames() {
+  public function getItemNames() {
     $stmt = $this->_dbh->prepare(
       'SELECT name, sum(amount) as amount 
        FROM item 
@@ -189,7 +190,7 @@ class Database{
    * @param $id The user id to look the items up
    * @return All matched rows
    */
-  public function getItemFromUser($item, $id) {
+  public function getItemByUser($item, $id) {
     $stmt = $this->_dbh->prepare(
       'SELECT sum(amount) AS amount, DATE(added) AS date  
        FROM item 
@@ -213,7 +214,7 @@ class Database{
    * @param $item The item to look up
    * @return All matched rows
    */
-  public function getItemsFromAll($item) {
+  public function getItem($item) {
     $stmt = $this->_dbh->prepare(
       'SELECT name, sum(amount) AS amount, DATE(added) AS date  
        FROM item 
@@ -227,7 +228,7 @@ class Database{
 
     return $stmt->fetchAll();
   }
-  
+
   /**
    * Creates all the needed database tables if they have not been created yet.
    */

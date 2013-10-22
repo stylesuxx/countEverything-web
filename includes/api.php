@@ -73,10 +73,10 @@ class API {
    */
   public function getAllItems($limit) {
     $items = array();
-    $names = $this->_db->getAllItemNames();
+    $names = $this->_db->getItemNames();
     foreach ($names as $key => $value) {
       if($limit-- == 0) break;
-      $items[$value['name']] = $this->_db->getItemsFromAll($value['name']);
+      $items[$value['name']] = $this->_db->getItem($value['name']);
     }
     
     return $items;
