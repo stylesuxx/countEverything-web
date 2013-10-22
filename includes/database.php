@@ -184,24 +184,46 @@ class Database {
   }
 
   /**
-   * Get all entries of a specific item by a specific user.
-   * 
-   * @param $item The item to look up
-   * @param $id The user id to look the items up
-   * @return All matched rows
+   * Get all items by a specific user.
+   *
+   * @param $user_id The users id to look the items up for
+   * @return All matching rows
    */
-  public function getItemByUser($item, $id) {
+  public function getAllByUser($user_id) {
     $stmt = $this->_dbh->prepare(
       'SELECT sum(amount) AS amount, DATE(added) AS date  
        FROM item 
-       WHERE user_id = :id AND name = :item
+       WHERE user_id = :user_id
+       GROUP BY DATE(added)
+       ORDER BY date'
+    );
+    
+    $stmt->execute(array(
+      ':user_id' => $user_id
+    ));
+    
+    return $stmt->fetchAll();
+  }
+
+  /**
+   * Get all entries of a specific item by a specific user.
+   * 
+   * @param $item The item to look up
+   * @param $user_id The user id to look the items up
+   * @return All matched rows
+   */
+  public function getItemByUser($item, $user_id) {
+    $stmt = $this->_dbh->prepare(
+      'SELECT sum(amount) AS amount, DATE(added) AS date  
+       FROM item 
+       WHERE user_id = :user_id AND name = :item
        GROUP BY DATE(added)
        ORDER BY date'
     );
     
     $stmt->execute(array(
       ':item' => strtolower($item),
-      ':id' => $id
+      ':user_id' => $id
     ));
     
     return $stmt->fetchAll();
@@ -225,6 +247,24 @@ class Database {
     $stmt->execute(array(
       ':item' => strtolower($item)
     ));
+
+    return $stmt->fetchAll();
+  }
+
+  /**
+   * Get all entries of all items by all users.
+   * amount.
+   * 
+   * @return All matched rows
+   */
+  public function getAll() {
+    $stmt = $this->_dbh->prepare(
+      'SELECT name, sum(amount) AS amount, DATE(added) AS date  
+       FROM item
+       GROUP BY name, DATE(added)
+       ORDER BY name, date'
+    );
+    $stmt->execute();
 
     return $stmt->fetchAll();
   }
