@@ -81,5 +81,32 @@ class API {
     
     return $items;
   }
+  
+  /**
+   * Get all items with all stats from all users for a specific time range.
+   *
+   * @param $start The start datetime
+   * @param $end The end datetime
+   * @return Return all matching entries
+   */
+  public function getAllItemsRange($start, $end) {
+    // TODO
+    
+    return null;
+  }
+  
+  /**
+   * Get all items with all stats from a specific users for a specific time range.
+   *
+   * @param $user_id The user id to look the items up for
+   * @param $start The start datetime
+   * @param $end The end datetime
+   * @return Return all matching entries
+   */
+  public function getUserItemsRange($user_id, $start, $end) {
+    // TODO
+    
+    return null;
+  }
 }
 ?>
