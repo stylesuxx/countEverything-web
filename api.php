@@ -82,7 +82,7 @@ function processAction($request, $user_id) {
     // Otherwise return bad request error.
     case 'add': {
       if(property_exists($request, 'item') && property_exists($request, 'amount') && is_numeric($request->amount)){
-        echo $db->addItem($request->item, $request->amount, $user_id);
+        $db->addItem($request->item, $request->amount, $user_id);
         $json = json_encode(array('message' => 'Counted '. $request->amount . ' ' . $request->item));
         renderOK($json);
       }
