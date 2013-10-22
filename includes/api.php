@@ -1,6 +1,8 @@
 <?php
 /**
  * This class is responsible for all API calls.
+ *
+ * All getters return a JSON representation of the query.
  */
 class API {
   private $_db;
@@ -13,43 +15,6 @@ class API {
    */
   function __construct($db) {
   	$this->_db = $db;
-  }
-
-  /**
-   * Get Json object with statistics for all requested items.
-   *
-   * @param $items An array of items to look up
-   * @param $id The user ID to look the items up for
-   * @return A Json representation of the requestet items
-   */
-  public function getJson($items, $id) {
-    $json = array();
-    foreach ($items as $item) {
-      $line = array('name' => $item, 'data' => array());
-      $rows = $this->_db->getItemFromUser($item, $id);
-      foreach ($rows as $row) {
-        $timestamp = strtotime($row['date']);
-        $line['data'][] = array($timestamp*1000, (float)$row['amount']);
-      }
-      $json[] = $line;
-    }
-
-    return json_encode($json);
-  }
-
-  /**
-   * Render the items statistics with an html view
-   *
-   * @param $items An array of items to look up
-   * @param $id The id to look the items up for
-   * @return A HTML representation of the requested items
-   */
-  public function getHtml($items, $id) {
-    $content = $this->getJson($items, $id);
-    ob_start();
-    include('templates/tables.tpl');
-    $output = ob_get_clean();
-    return $output;
   }
 
   /**
@@ -67,30 +32,42 @@ class API {
   }
 
   /**
-   * Get all items with all stats from all users from the database.
-   *
-   * @param $limit The maximum amount of items to return
-   * @return Return all entries
-   */
-  public function getAllItems($limit) {
-    $items = array();
-    $names = $this->_db->getItemNames();
-    foreach ($names as $key => $value) {
-      if($limit-- == 0) break;
-      $items[$value['name']] = $this->_db->getItem($value['name']);
-    }
-    
-    return $items;
-  }
-
-  /**
-   * Get all items from all users and all time.
+   * Get all statistics for all users.
    *
    * @return JSON representation of all ever counted items
    */
-  public function getAll() {
+  public function getAllStats() {
     $items = $this->_db->getAll();
 
+    return $this->formatStats($items);
+  }
+
+  public function getAllStatsByRange($start, $end) {
+
+  }
+
+  /**
+   * Get all statistics for a specific user.
+   *
+   * @param $user_id The users id to look the items up for
+   * @return JSON representation of all counted items
+   */
+  public function getAllStatsByUser($user_id) {
+    $items = $this->_db->getAllByUser($user_id);
+
+    return $this->formatStats($items);
+  }
+
+  public function getAllstatsByUserByRange($start, $end) {
+
+  }
+
+  /**
+   * Format items for statistical representation.
+   *
+   * @return JSON representation of items
+   */
+  private function formatStats($items) {
     $rows = array();
     foreach($items as $item){
       $name = $item['name'];
@@ -110,18 +87,6 @@ class API {
     }
 
     return json_encode($json);
-  }
-
-  /**
-   * Get all items of a specific user.
-   *
-   * @param $user_id The users id to look the items up for
-   * @return All matching entries
-   */
-  public function getItemsByUser($user_id) {
-    // TODO
-
-    return null;
   }
 
   
