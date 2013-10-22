@@ -22,7 +22,7 @@ class Database{
    * @param $user The database user
    * @param $pass The database pass
    */
-  function __construct($host, $db, $user, $pass){
+  function __construct($host, $db, $user, $pass) {
     try {
       $this->_dbh = new PDO('mysql:host='.$host.';dbname='.$db, $user, $pass);
       $this->create();
@@ -40,7 +40,7 @@ class Database{
    * @param $user_id The id of the submitting user
    * @return The id of the added item
    */
-  public function addItem($name, $amount, $user_id){
+  public function addItem($name, $amount, $user_id) {
     $stmt = $this->_dbh->prepare(
       'INSERT INTO item
        SET name = :name, amount = :amount, user_id = :id'
@@ -98,7 +98,7 @@ class Database{
    *
    * @return Amount of distinct users
    */
-  public function getDistinctUsers(){
+  public function getDistinctUsers() {
     $stmt = $this->_dbh->prepare(
       'SELECT COUNT(*) 
        FROM item GRPUP BY user_id'
@@ -113,7 +113,7 @@ class Database{
    *
    * @return Amount of distinct users
    */
-  public function getDistinctUsersByItem($item){
+  public function getDistinctUsersByItem($item) {
     $stmt = $this->_dbh->prepare(
       'SELECT COUNT(*) 
        FROM item GRPUP BY user_id
@@ -170,7 +170,7 @@ class Database{
    * @param $item The item to look the amount up for
    * @return Amount of items
    */
-  public function getTotalAmount($item){
+  public function getTotalAmount($item) {
     $stmt = $this->_dbh->prepare(
       'SELECT SUM(amount) 
        FROM item
