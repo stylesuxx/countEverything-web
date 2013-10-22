@@ -166,16 +166,17 @@ class Database{
   /**
    * Get the total amount of a specific item submitted by all users.
    *
+   * @param $item The item to look the amount up for
    * @return Amount of items
    */
-  public function getTotalAmount($name){
+  public function getTotalAmount($item){
     $stmt = $this->_dbh->prepare(
       'SELECT SUM(amount) 
        FROM item
-       WHERE name = :name'
+       WHERE name = :item'
     );
     $stmt->execute(array(
-      ':name' => strtolower($name)
+      ':item' => strtolower($item)
     ));
     
     return $stmt->fetchColumn();
